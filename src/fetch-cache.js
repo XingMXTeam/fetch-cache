@@ -1,9 +1,9 @@
 import { useRequest, useCreation } from 'ahooks';
 import { useRef } from 'react';
-import { Plugin } from 'ahooks/lib/useRequest/src/types'
+// import { Plugin } from 'ahooks/lib/useRequest/src/types'
 import { del } from 'idb-keyval'
 
-export const getEnvKey = (key: string) => {
+export const getEnvKey = (key) => {
     return `$$-${key}`
 }
 
@@ -17,7 +17,7 @@ const getMenu = async () => {
  */
 
 
-export const createCacheAsyncPlugin = (options) => {
+export const CreateCacheAsyncPlugin = (options) => {
     const { adapter, getCacheKey, timeout } = options
     const justFirstTimeRef = useRef(false)
     const cacheKeys = useRef([])
@@ -62,22 +62,6 @@ export const createCacheAsyncPlugin = (options) => {
 
 }
 
-const { data } = useRequest(getMenu, {
-    retryCount: 5,
-    manual: false
-}, [
-    createCacheAsyncPlugin({
-        getCacheKey: () => 'layout-menu',
-        timeout: 10000,
-        adapter(_data) {
-            if(!_data) {
-                return undefined
-            }
-            return { menus: _data.menus || [] }
-        }
-    })
-])
-
 
 
 /**
@@ -89,7 +73,7 @@ const { data } = useRequest(getMenu, {
  */
 export const wrapLocalStorageCache = (fn, getCacheKey, onUpdate) => {
     return (...args) => {
-        let options: any = {}
+        let options = {}
         if(typeof getCacheKey === 'object') {
             options = getCacheKey
             getCacheKey = options.getCacheKey
@@ -126,7 +110,7 @@ export const wrapLocalStorageCache = (fn, getCacheKey, onUpdate) => {
 
 const getLocalStorageCache = (key) => {
     try  {
-        return JSON.parse(localStorage.getItem(key)  as string)
+        return JSON.parse(localStorage.getItem(key))
     } catch(error) {
         return null
     }
@@ -142,4 +126,23 @@ const isTimeout = (time, data) => {
     if(time === -1) return false
     if(!data.s_t) return true;
     return Date.now() - data.s_t > time;
+}
+
+export const useFetch = ({
+    fetch,
+    timeout = 3,
+    cacheKey,
+    dataHandler,
+    manual = false
+}) => {
+    return useRequest(
+        fetch,
+        {
+            retryCount: 5,
+            manual
+        },
+        [
+            CreateCacheAsyncPlugin
+        ]
+    )
 }

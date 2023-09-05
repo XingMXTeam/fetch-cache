@@ -7,10 +7,6 @@ export const getEnvKey = (key) => {
     return `$$-${key}`
 }
 
-const getMenu = async () => {
-    return []
-}
-
 /**
  * SWR：避免影响交互的关键事件
  * 保鲜时间，如果在这个时间段内，认为数据是最新的，不会重新发起请求
@@ -18,13 +14,15 @@ const getMenu = async () => {
 
 
 export const CreateCacheAsyncPlugin = (options) => {
-    const { adapter, getCacheKey, timeout } = options
+    const {adaptor, getCacheKey, timeout } = options
     const justFirstTimeRef = useRef(false)
     const cacheKeys = useRef([])
+    console.log(333)
     return useCreation(() => {
         const requestPlugin = (fetch) => {
             return {
                 onRequest(server) {
+                    console.log(111);
                     if(justFirstTimeRef.current) {
                         return {}
                     }
@@ -36,11 +34,11 @@ export const CreateCacheAsyncPlugin = (options) => {
                             return cacheKey
                         },
                         onUpdate: (res) => {
-                            fetch.setState({ data: adapter(res)})
+                            fetch.setState({ data: adaptor(res)})
                         },
                         timeout
                     })().then(res => {
-                        return adapter(res)
+                        return adaptor(res)
                     })
                     return {
                         servicePromise
@@ -51,7 +49,7 @@ export const CreateCacheAsyncPlugin = (options) => {
         requestPlugin.onInit = () => {
             const cacheData = getLocalStorageCache(getEnvKey(getCacheKey()))
             return {
-                data: adapter(cacheData?.s_d ?? cacheData) || undefined
+                data: adaptor(cacheData?.s_d ?? cacheData) || undefined
             }
         }
         requestPlugin.clearCache = () => {
@@ -116,6 +114,10 @@ const getLocalStorageCache = (key) => {
     }
 }
 
+const getMinutesTime = (minutes) => {
+    return 1000 * 60 * minutes;
+}
+
 
 const setLocalStorageCache = (cacheKey, data) => {
     localStorage.setItem(cacheKey, data)
@@ -142,7 +144,13 @@ export const useFetch = ({
             manual
         },
         [
-            CreateCacheAsyncPlugin
+            CreateCacheAsyncPlugin({
+                getCacheKey: () => cacheKey,
+                timeout: getMinutesTime(timeout),
+                adaptor(_data) {
+                    return dataHandler(_data)
+                }
+            })
         ]
     )
 }

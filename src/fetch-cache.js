@@ -17,12 +17,10 @@ export const CreateCacheAsyncPlugin = (options) => {
     const {adaptor, getCacheKey, timeout } = options
     const justFirstTimeRef = useRef(false)
     const cacheKeys = useRef([])
-    console.log(333)
     return useCreation(() => {
         const requestPlugin = (fetch) => {
             return {
                 onRequest(server) {
-                    console.log(111);
                     if(justFirstTimeRef.current) {
                         return {}
                     }
@@ -91,6 +89,7 @@ export const wrapLocalStorageCache = (fn, getCacheKey, onUpdate) => {
         return (async () => {
             // 保鲜时间内
             if(!!cacheResult && options.timeout && !isTimeout(options.timeout, cacheResult)) {
+                console.log('命中cache')
                 return cacheResult.s_d;
             }
             // 有数据，则延时请求
@@ -120,7 +119,7 @@ const getMinutesTime = (minutes) => {
 
 
 const setLocalStorageCache = (cacheKey, data) => {
-    localStorage.setItem(cacheKey, data)
+    localStorage.setItem(cacheKey, JSON.stringify(data))
 }
 
 const isTimeout = (time, data) => {

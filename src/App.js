@@ -45,7 +45,26 @@ function App() {
   return (
     <div className="">
       <div style={{ width: "200px" }}>
-        <Menu
+        <ul>
+          {(data?.data || data).map((i) => {
+            console.log('i.key', i.key, key, i.key === key);
+            return (
+              <li
+                style={{ color: i.key === key ? "red" : "black" }}
+                key={i.value}
+                onClick={() => {
+                  setKey(i.key);
+                  const cur = new URL(window.location.href);
+                  cur.searchParams.set("key", i.key);
+                  window.location.href = cur.href;
+                }}
+              >
+                {i.label}
+              </li>
+            );
+          })}
+        </ul>
+        {/* <Menu
           selectedKeys={[key]}
           mode="inline"
           items={data?.data || data}
@@ -55,7 +74,7 @@ function App() {
             cur.searchParams.set('key', v.key)
             window.location.href = cur.href;
           }}
-        />
+        /> */}
       </div>
     </div>
   );
